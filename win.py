@@ -11,7 +11,9 @@ import pymysql  # 数据库控制
 from resource import gas_predict
 
 
-# 全局变量登录界 面
+
+
+# 全局变量登录 界 面
 login = ''
 # 全局变量注册界面
 register = ''
