@@ -196,7 +196,7 @@ class Register(QWidget):
 # 主界面
 class Main(QMainWindow):
 
-    # TODO 导出预测过的数据
+
 
     def __init__(self):
         super(Main, self).__init__()

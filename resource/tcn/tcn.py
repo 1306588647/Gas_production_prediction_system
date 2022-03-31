@@ -432,7 +432,7 @@ def compiled_tcn(num_feat,  # type: int
 
         # https://github.com/keras-team/keras/pull/11373
         # It's now in Keras@master but still not available with pip.
-        # TODO remove later.
+
         def accuracy(y_true, y_pred):
             # reshape in case it's in shape (num_samples, 1) instead of (num_samples,)
             if K.ndim(y_true) == K.ndim(y_pred):
