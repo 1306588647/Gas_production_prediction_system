@@ -26,6 +26,7 @@ def Remove_classification(path, num):
 def main(ms,pred_size):
     path = 'resource/划分数据/聚类中心'
     files = os.listdir(path)
+
     for i in range(len(files)):
         model_i = files[i]  # 模型i的名字如：第0类
         files_i_path = path + '\\' + model_i
@@ -50,7 +51,7 @@ def cluster(ms, train_data_path,pred_size):
     global path_all, dict_
     path_all, dict_ = test_try_2.main(ms, train_data_path)
 
-    ms.text_print.emit('TCN模型建立中......')
+    ms.text_print.emit('模型建立中，该过程耗时较长，请耐心等待......')
     # 训练三个模型
     main(ms,pred_size)
     ms.text_print.emit('模型建立完成！')

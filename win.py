@@ -42,6 +42,8 @@ class MySignals(QObject):
     predict_return = pyqtSignal(str)
 
 
+
+
 # 登录界面
 class Login(QWidget):
     def __init__(self):
