@@ -50,7 +50,7 @@ class Login(QWidget):
         super(Login, self).__init__()
 
         # 加载ui界面
-        loadUi('ui/login.ui', self)
+        loadUi('resource/ui/login.ui', self)
         # self.setupUi(self) # 设置写好的ui转py
 
         # 设置背景图片
@@ -124,7 +124,7 @@ class Register(QWidget):
     def __init__(self):
         super(Register, self).__init__()
         # 加载ui界面
-        loadUi('ui/register.ui', self)
+        loadUi('resource/ui/register.ui', self)
 
         # 返回按钮关联
         self.btn_return.clicked.connect(self.click_return)
@@ -202,7 +202,7 @@ class Main(QMainWindow):
         super(Main, self).__init__()
         # 加载ui界面
 
-        loadUi('ui/main.ui', self)
+        loadUi('resource/ui/main.ui', self)
 
         # 建立线程变量
         self.thread = None
