@@ -50,6 +50,7 @@ def cluster(ms, train_data_path,pred_size):
     # 聚类中心地址，返回字典
     global path_all, dict_
     path_all, dict_ = test_try_2.main(ms, train_data_path)
+    print(dict_)
 
     ms.text_print.emit('模型建立中，该过程耗时较长，请耐心等待......')
     # 训练三个模型

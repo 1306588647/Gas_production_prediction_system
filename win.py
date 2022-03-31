@@ -713,7 +713,7 @@ class Main(QMainWindow):
 
     def exam_is_train_clear(self):
         """
-        检测训练数据和预测数据是否清空
+        检测训练数据和预测数据是否清空asdasd
         :return:
         """
         model_num = len(os.listdir('resource/model'))  # 模型文件数量
