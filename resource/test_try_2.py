@@ -237,28 +237,27 @@ def midir(path):
         return False
 
 
-def Set_trainortest(i_name, path_i):
-    path = 'resource/聚类训练模型数据/'
+def Set_trainortest(i_name, path_i,train_path):
+    path = train_path+'/'
     df = pd.read_excel(path + i_name + '.xlsx')
-    # print(df)
     m, n = np.shape(df)
     data = df.iloc[m - 228:, :]
     # print(data)
     data.to_excel(path_i + '\\' + i_name + '.xlsx', index=False)
 
 
-def Set_xlsx(lei, center_lei, all_name, ms):
-    path_all = 'resource/划分数据/聚类中心'
+def Set_xlsx(lei, center_lei, all_name, ms,train_path):
+    path_all = 'resource/临时数据/聚类中心'
     midir(path_all)
     for i in range(len(lei)):
         path_i = path_all + '\\' + '第' + str(i) + '类'
         midir(path_i)  # 建立文件
         label_i_name = all_name[center_lei[i]]  # 获得名字
-        Set_trainortest(label_i_name, path_i)
+        Set_trainortest(label_i_name, path_i,train_path)
 
     # 发送信号给主线程
     ms.text_print.emit('已建立聚类中心文件！')
-    ms.text_print.emit('文件位于：' + '划分数据/聚类中心')
+    ms.text_print.emit('文件位于：' + '临时数据/聚类中心')
     return path_all
 
 
@@ -407,7 +406,7 @@ def fun1(path, ms):
     print('正确率为：%f' % (float(num_sure / len(test_data))))  # 分类准确率
 
     # 建立表格
-    return Set_xlsx(cluster_centers, af.cluster_centers_indices_, files_name_all, ms), dict_
+    return Set_xlsx(cluster_centers, af.cluster_centers_indices_, files_name_all, ms,path), dict_
 
 
 def main(ms, train_data_path):

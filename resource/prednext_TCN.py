@@ -7,15 +7,15 @@ from tensorflow.keras.models import load_model
 import matplotlib.pyplot as plt
 from resource.tcn.tcn import TCN
 
-TIME_STEPS = 30 #用几天来预测
+TIME_STEPS = 95 #用几天来预测
 
-PRED_SIZE = 6   #预测天数
+PRED_SIZE = 19   #预测天数
 BATCH_SIZE = 64
 
 INPUT_SIZE = 50
-EPOCH = 100
+EPOCH = 5
 DILA = [1, 2, 4, 8, 16, 32]
-FILTER_NUMS = 128
+FILTER_NUMS = 16
 KERNEL_SIZE = 2
 
 
@@ -47,9 +47,9 @@ class KerasMultiTCN(object):
         self.model.compile(metrics=['mae'], loss='mean_squared_error', optimizer='adam')
         self.model.summary()
 
-    def train(self, x_train, y_train, epochs, filename):
+    def train(self, x_train, y_train, epochs, filename,pred_size):
         history = self.model.fit(x_train, y_train, epochs=epochs, batch_size=self.batch_size).history
-        self.model.save("resource/model/TCN_model" + filename)
+        self.model.save("resource/model/"+str(pred_size)+"_TCN_model" + filename)
 
         return history
 
@@ -121,7 +121,7 @@ def train(path, model_name, pred_size):
     X, Y, z, sc, df = set_datas(df, True)
     model = KerasMultiTCN(FILTER_NUMS, KERNEL_SIZE, TIME_STEPS, INPUT_SIZE, PRED_SIZE, BATCH_SIZE, DILA)
     model.model()
-    model.train(X, Y, EPOCH, model_name)
+    model.train(X, Y, EPOCH, model_name,pred_size)
 
 
 # 反归一化的时候要用原始test样本数量（因为时间步的存在，所以一定有最开始时间步的样本没有预测结果）（预测结果都是从时间步之后开始）
@@ -172,7 +172,7 @@ def test(Test_file, model_name, file_name, LEI, feature_1, feature_2, ms, i, pre
 
     plt.rcParams['font.sans-serif'] = ['SimHei']  # 显示中文标签
     plt.rcParams['axes.unicode_minus'] = False
-    plt.rcParams['figure.figsize'] = (8, 5)
+    plt.rcParams['figure.figsize'] = (8, 4)
     plt.title(file_name + ' ' + '类别:' + str(LEI) + ' ' + 'MAPE:' + str(PR_lossMAPE))  # 加标签
 
     # 获取最大值

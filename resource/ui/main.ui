@@ -224,39 +224,95 @@
        <attribute name="title">
         <string>模型预测</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_7">
+       <layout class="QVBoxLayout" name="verticalLayout_10">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0,0,0">
+           <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
-             <widget class="QLineEdit" name="text_predict_path">
-              <property name="font">
-               <font>
-                <family>宋体</family>
-                <pointsize>10</pointsize>
-               </font>
-              </property>
-              <property name="placeholderText">
-               <string>请选择预测数据文件所在目录</string>
-              </property>
-             </widget>
+             <layout class="QHBoxLayout" name="horizontalLayout_8">
+              <item>
+               <widget class="QLineEdit" name="text_model_path">
+                <property name="placeholderText">
+                 <string>请选择模型所在文件夹</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_import_model">
+                <property name="text">
+                 <string>导入预测模型</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
             <item>
-             <widget class="QPushButton" name="btn_import_predata">
-              <property name="font">
-               <font>
-                <family>宋体</family>
-                <pointsize>10</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>导入文件</string>
-              </property>
-             </widget>
+             <layout class="QHBoxLayout" name="horizontalLayout_9">
+              <item>
+               <widget class="QLineEdit" name="text_dict_path">
+                <property name="placeholderText">
+                 <string>请选择聚类数据</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_import_dict">
+                <property name="text">
+                 <string>导入聚类字典</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0">
+              <item>
+               <widget class="QLineEdit" name="text_predict_path">
+                <property name="font">
+                 <font>
+                  <family>宋体</family>
+                  <pointsize>10</pointsize>
+                 </font>
+                </property>
+                <property name="placeholderText">
+                 <string>请选择预测数据文件所在文件夹</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_import_predata">
+                <property name="font">
+                 <font>
+                  <family>宋体</family>
+                  <pointsize>10</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>导入预测文件</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_7">
             <item>
              <widget class="QPushButton" name="btn_start_predict">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>50</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <family>宋体</family>
@@ -270,6 +326,12 @@
             </item>
             <item>
              <widget class="QPushButton" name="btn_clear_predata">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>50</height>
+               </size>
+              </property>
               <property name="text">
                <string>清除数据</string>
               </property>
@@ -282,7 +344,7 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_5" stretch="0,0">
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,5">
+           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="3,8">
             <item>
              <widget class="QListWidget" name="listWidget"/>
             </item>
@@ -341,6 +403,8 @@
     </widget>
     <addaction name="menu_2"/>
     <addaction name="action_export_predict_data"/>
+    <addaction name="action_export_model"/>
+    <addaction name="action_export_dict"/>
    </widget>
    <widget class="QMenu" name="menu_3">
     <property name="title">
@@ -391,6 +455,16 @@
   <action name="action_exit">
    <property name="text">
     <string>退出</string>
+   </property>
+  </action>
+  <action name="action_export_model">
+   <property name="text">
+    <string>预测模型</string>
+   </property>
+  </action>
+  <action name="action_export_dict">
+   <property name="text">
+    <string>聚类字典</string>
    </property>
   </action>
  </widget>

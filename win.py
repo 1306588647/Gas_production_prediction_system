@@ -10,9 +10,6 @@ import pymysql  # 数据库控制
 
 from resource import gas_predict
 
-
-
-
 # 全局变量登录 界 面
 login = ''
 # 全局变量注册界面
@@ -26,9 +23,6 @@ class MySignals(QObject):
     # 定义一种信号，两个参数 类型分别是： QTextBrowser 和 字符串
     # 调用 emit方法 发信号时，传入参数 必须是这里指定的 参数类型
 
-
-
-
     text_print = pyqtSignal(str)
 
     # 子线程给主线程发送聚类个数
@@ -40,8 +34,6 @@ class MySignals(QObject):
 
     # 每当预测文件图片生成，则向主线程发射信号，让主线程将图片显示出来
     predict_return = pyqtSignal(str)
-
-
 
 
 # 登录界面
@@ -196,8 +188,6 @@ class Register(QWidget):
 # 主界面
 class Main(QMainWindow):
 
-
-
     def __init__(self):
         super(Main, self).__init__()
         # 加载ui界面
@@ -210,18 +200,19 @@ class Main(QMainWindow):
         # 实例化信号
         self.ms = MySignals()
 
-        # 初始化导出散点图、导出聚类折线图、导出预测折线图,导出预测数据都不可用，因为没有进行聚类和预测
+        # 初始化导出散点图、导出聚类折线图、导出预测折线图,导出预测数据，导出模型，导出字典都不可用，因为没有进行聚类和预测
         self.action_export_scatter.setEnabled(False)
         self.action_export_line.setEnabled(False)
         self.action_export_predict_png.setEnabled(False)
         self.action_export_predict_data.setEnabled(False)
+        self.action_export_model.setEnabled(False)
+        self.action_export_dict.setEnabled(False)
 
         # 初始化聚类中心为0
         self.center_num = 0
 
-        # 初始化时，模型训练前，聚类分析和模型预测页面不可用
+        # 初始化时，模型训练前，聚类分析不可用
         self.tabWidget.setTabEnabled(1, False)
-        self.tabWidget.setTabEnabled(2, False)
 
         # 进度条初始化为0
         self.progressBar.setValue(0)
@@ -245,6 +236,8 @@ class Main(QMainWindow):
         self.btn_import_train.clicked.connect(self.click_import_train_data)  # 点击导入训练数据按钮触发事件
         self.btn_start_train.clicked.connect(self.click_start_train_data)  # 点击开始训练按钮触发事件
         self.btn_clear_data.clicked.connect(self.click_clear_train_data)  # 点击清空训练数据按钮触发事件
+        self.btn_import_model.clicked.connect(self.click_btn_import_model_data)  # 点击导入模型文件按钮触发事件
+        self.btn_import_dict.clicked.connect(self.click_btn_import_dict_data)  # 点击导入字典文件按钮触发事件
         self.btn_import_predata.clicked.connect(self.click_import_predict_data)  # 点击导入预测文件按钮触发事件
         self.btn_start_predict.clicked.connect(self.click_start_predict_data)  # 点击开始预测按钮触发事件
         self.btn_clear_predata.clicked.connect(self.click_clear_predict_data)  # 点击清空预测数据按钮触发事件
@@ -272,14 +265,15 @@ class Main(QMainWindow):
         self.action_export_line.triggered.connect(self.export_line)  # 点击菜单栏导出聚类折线图
         self.action_export_predict_png.triggered.connect(self.export_predict_png)  # 点击菜单栏导出预测后的折线图
         self.action_export_predict_data.triggered.connect(self.export_predict_data)  # 点击菜单栏导出预测数据
+        self.action_export_model.triggered.connect(self.export_model)  # 点击菜单栏导出模型
+        self.action_export_dict.triggered.connect(self.export_dict)  # 点击菜单栏导出模型
         self.action_exit.triggered.connect(self.app_exit)  # 点击菜单栏退出
         self.action_version.triggered.connect(self.app_version)  # 点击菜单栏版本号
-
 
     # 选择训练数据目录按钮触发
     def click_import_train_data(self):
         # 选择训练数据文件夹并将其路径显示在左侧text_train_path中
-        directory = QFileDialog.getExistingDirectory(self, "选取文件夹", "resource/聚类训练模型数据")
+        directory = QFileDialog.getExistingDirectory(self, "选取文件夹", "C:/Users/13065/Desktop/训练数据")
         if directory != '':  # 如果选择路径不是空
             if len(os.listdir(directory)) != 0:  # 如果选择的文件夹中数据量不是0
                 self.text_train_path.setText(directory)
@@ -331,10 +325,10 @@ class Main(QMainWindow):
         self.textBrowser.clear()
 
         # 删除生成的数据
-        self.del_file('resource/划分数据/聚类中心')  # 删除聚类中心井数据
         self.del_file('resource/model')  # 删除生成的模型
         self.del_file('resource/picture/line')  # 删除散点图和每一类的折线图
         self.del_file('resource/picture/scatter')  # 删除散点图和每一类的折线图
+        self.del_file('resource/dict')  # 删除聚类字典
 
         # 清空左边list中的item
         self.leftlist.clear()
@@ -354,10 +348,33 @@ class Main(QMainWindow):
         # 更改一些可用和不可用
         self.alter_available_clear_train()
 
+    # 选择需要字典文件按钮触发
+    def click_btn_import_dict_data(self):
+        # 选择文件夹并显示
+        directory = QFileDialog.getOpenFileName(self, "选取聚类字典文件", "resource/dict", "字典类型 (*.pkl)")
+        if directory[0] != '':  # 如果选择路径不为空
+            # 左侧文本框显示路径
+            self.text_dict_path.setText(directory[0])
+
+    # 选择需要模型所在的的文件夹按钮触发
+    def click_btn_import_model_data(self):
+        # 选择文件夹并显示
+        directory = QFileDialog.getExistingDirectory(self, "选取模型所在文件夹", "resource/model")
+        if directory != '':  # 如果选择路径不为空
+            # 获得有多少个预测文件
+            file_num = len(os.listdir(directory))
+            if file_num == 0:  # 如果文件个数等于0，则提示
+                QMessageBox.information(self,
+                                        "提示",
+                                        "该目录为空，请重新选择预测文件目录!")
+            else:
+                # 左侧文本框显示路径
+                self.text_model_path.setText(directory)
+
     # 选择需要预测的文件夹按钮触发
     def click_import_predict_data(self):
         # 选择文件夹并显示
-        directory = QFileDialog.getExistingDirectory(self, "选取文件夹", "resource/划分数据/测试数据")
+        directory = QFileDialog.getExistingDirectory(self, "选取文件夹", "C:/Users/13065/Desktop/测试数据")
         if directory != '':  # 如果选择路径不为空
             # 获得有多少个预测文件
             file_num = len(os.listdir(directory))
@@ -383,20 +400,23 @@ class Main(QMainWindow):
         else:
             # 检查预测数据是否清空
             if self.exam_is_predict_clear():
-                # 训练预测中，按钮禁用
+                # 训练预测中，按钮禁用：导入预测模型，导入聚类数据，导入预测文件，清除数据
                 self.btn_import_predata.setEnabled(False)
                 self.btn_start_predict.setEnabled(False)
                 self.btn_clear_predata.setEnabled(False)
+                self.btn_import_model.setEnabled(False)
+                self.btn_import_dict.setEnabled(False)
 
                 # 训练模型中，tab不可切换
                 self.tabWidget.setTabEnabled(0, False)
                 self.tabWidget.setTabEnabled(1, False)
 
-                # 获取预测天数
-                self.pred_size = int(self.comboBox.currentText())
-                print(self.pred_size)
+                # 获取模型所在地址和字典所在地址
+                model_path = self.text_model_path.text()
+                dict_path = self.text_dict_path.text()
                 # 创建子线程，建立模型，参数为ms和预测数据路径
-                self.thread = Thread(target=gas_predict.predict, args=(self.ms, predict_data_path, self.pred_size))
+                self.thread = Thread(target=gas_predict.predict,
+                                     args=(self.ms, predict_data_path, model_path, dict_path))
                 # 调用子线程
                 self.thread.start()
             else:
@@ -405,14 +425,15 @@ class Main(QMainWindow):
     # 清空预测数据
     def click_clear_predict_data(self):
 
-        # 选择路径框清空
+        # 路径框清空
+        self.text_model_path.clear()
+        self.text_dict_path.clear()
         self.text_predict_path.clear()
         # 进度条设置为0
         self.progressBar_2.setValue(0)
 
         # 删除生成的预测图片和和卷积数据
         self.del_file('resource/picture/predict')
-        self.del_file('resource/划分数据/卷积后测试数据')
         self.del_file('resource/result/')
 
         # 清空左边list中的item
@@ -442,6 +463,7 @@ class Main(QMainWindow):
 
         QMessageBox.information(self, "提示", "数据清除成功！")
 
+    # 将text内容追加到文字显示框中
     def print_info(self, text):
         """
         子线程发送控制台信号后，处理函数
@@ -453,6 +475,7 @@ class Main(QMainWindow):
         # 自动向下滚动
         self.textBrowser.ensureCursorVisible()
 
+    # 获取子线程传来的聚类数目
     def get_center_num(self, num):
         """
         获取子线程传来的聚类数目
@@ -460,8 +483,9 @@ class Main(QMainWindow):
         :return:
         """
         self.center_num = num
-        self.progressBar.setRange(0,5+num)
+        self.progressBar.setRange(0, 5 + num)
 
+    # 修改进度条值
     def alter_progressbar(self, num):
         """
         获取子线程发来的进度，修改进度条1
@@ -471,17 +495,20 @@ class Main(QMainWindow):
         # 修改进度条值
         self.progressBar.setValue(num)
         # 如果8个进度全部执行完，则清除数据按钮可用，另外两个tab也可用
-        if num == 5+self.center_num:
+        if num == 5 + self.center_num:
             self.btn_clear_data.setEnabled(True)
 
             # 模型训练完成，tab可切换状态
             self.tabWidget.setTabEnabled(1, True)
             self.tabWidget.setTabEnabled(2, True)
 
-            # 导出散点图和聚类折线图可用
+            # 导出散点图和聚类折线图，聚类字典，模型可用
             self.action_export_scatter.setEnabled(True)
             self.action_export_line.setEnabled(True)
+            self.action_export_model.setEnabled(True)
+            self.action_export_dict.setEnabled(True)
 
+    # 获取子线程发来的进度，修改进度2
     def alter_progressbar2(self, num):
         """
         获取子线程发来的进度，修改进度2
@@ -501,6 +528,7 @@ class Main(QMainWindow):
             self.action_export_predict_png.setEnabled(True)
             self.action_export_predict_data.setEnabled(True)
 
+    # 子线程预测完一个数据，就把序号和文件名发送给主线程添加list和画图
     def add_item_picture(self, text):
         """
         子线程预测完一个数据，就把序号和文件名发送给主线程添加list和画图
@@ -525,6 +553,7 @@ class Main(QMainWindow):
         self.stackedWidget.insertWidget(int(num), picture_predict)
         self.stackedWidget.setCurrentIndex(int(num))
 
+    # 添加聚类中心散点图和聚类后每个类的折线产气图
     def add_list_widget(self, x):
         """
         添加聚类中心散点图和聚类后每个类的折线产气图
@@ -565,6 +594,7 @@ class Main(QMainWindow):
                 self.stack_type_picture_widget.append(picture_well)
                 self.stack.insertWidget(i + 1, picture_well)
 
+    # 设置当前可见的选项卡的索引
     def display_1(self, i):
         """
         设置当前可见的选项卡的索引
@@ -574,6 +604,7 @@ class Main(QMainWindow):
         if i >= 0:
             self.stack.setCurrentIndex(i)
 
+    # 设置当前可见的选项卡的索引
     def display_2(self, i):
         """
         设置当前可见的选项卡的索引
@@ -583,6 +614,7 @@ class Main(QMainWindow):
         if i >= 0:
             self.stackedWidget.setCurrentIndex(i)
 
+    # 保存散点图
     def export_scatter(self):
         """
         保存散点图
@@ -596,6 +628,7 @@ class Main(QMainWindow):
                                 '导出成功',
                                 "文件位于：" + filePath)
 
+    # 保存聚类折线图
     def export_line(self):
         """
         保存聚类折线图
@@ -611,6 +644,7 @@ class Main(QMainWindow):
                                 '导出成功',
                                 "文件位于：" + filePath)
 
+    # 保存预测过后的折线图
     def export_predict_png(self):
         """
         保存预测过后的折线图
@@ -626,6 +660,7 @@ class Main(QMainWindow):
                                 '导出成功',
                                 "文件位于：" + filePath)
 
+    # 导出预测数据
     def export_predict_data(self):
         """
         导出预测数据
@@ -641,6 +676,39 @@ class Main(QMainWindow):
                                 '导出成功',
                                 "文件位于：" + filePath)
 
+    # 导出模型
+    def export_model(self):
+        """
+        导出模型
+        :return:
+        """
+        # 获取保存路径
+        filePath = QFileDialog.getExistingDirectory(self, "选择存储路径")
+        # 保存到所选路径
+        files = os.listdir('resource/model')
+        for file in files:
+            shutil.copytree('resource/model/' + file, filePath + '/' + file)
+        QMessageBox.information(self,
+                                '导出成功',
+                                "文件位于：" + filePath)
+
+    # 导出聚类字典数据
+    def export_dict(self):
+        """
+        导出预测数据
+        :return:
+        """
+        # 获取保存路径
+        filePath = QFileDialog.getExistingDirectory(self, "选择存储路径")
+        # 保存到所选路径
+        files = os.listdir('resource/dict')
+        for file in files:
+            shutil.copyfile('resource/dict/' + file, filePath + '/' + file)
+        QMessageBox.information(self,
+                                '导出成功',
+                                "文件位于：" + filePath)
+
+    # 退出主窗口进入登录窗口
     def app_exit(self):
         """
         退出主窗口进入登录窗口
@@ -649,6 +717,7 @@ class Main(QMainWindow):
         self.close()
         login.show()
 
+    # 点击菜单版本号显示版本号
     def app_version(self):
         """
         点击菜单版本号显示版本号
@@ -673,14 +742,14 @@ class Main(QMainWindow):
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
 
+    # 当点击清除训练数据按钮修改一些可用和不可用
     def alter_available_clear_train(self):
         """
         当点击清除训练数据按钮修改一些可用和不可用
         :return:
         """
-        # 那么聚类分析和模型预测页面不可用
+        # 那么聚类分析
         self.tabWidget.setTabEnabled(1, False)
-        self.tabWidget.setTabEnabled(2, False)
 
         # 导入训练数据按钮可用，开始训练按钮可用
         self.btn_import_train.setEnabled(True)
@@ -694,23 +763,29 @@ class Main(QMainWindow):
         self.action_export_scatter.setEnabled(False)
         self.action_export_line.setEnabled(False)
         self.action_export_predict_png.setEnabled(False)
+        self.action_export_model.setEnabled(False)
+        self.action_export_dict.setEnabled(False)
 
         # 选择预测天数可用
         self.comboBox.setEnabled(True)
 
+    # 当点击清除预测数据按钮，可用和不可用更改
     def alter_available_clear_predict(self):
         """
         当点击清除预测数据按钮，可用和不可用更改
         :return:
         """
-        # 导入预测数据按钮可用，开始预测按钮可用
+        # 导入预测数据按钮可用，开始预测按钮可用，导入预测模型可用，导入聚类数据可用
         self.btn_import_predata.setEnabled(True)
         self.btn_start_predict.setEnabled(True)
+        self.btn_import_model.setEnabled(True)
+        self.btn_import_dict.setEnabled(True)
 
         # 导出预测图和结果不可用
         self.action_export_predict_png.setEnabled(False)
         self.action_export_predict_data.setEnabled(False)
 
+    # 检测训练数据和预测数据是否清空
     def exam_is_train_clear(self):
         """
         检测训练数据和预测数据是否清空asdasd
@@ -719,21 +794,23 @@ class Main(QMainWindow):
         model_num = len(os.listdir('resource/model'))  # 模型文件数量
         line_num = len(os.listdir('resource/picture/line'))  # 聚类折线图文件数量
         scatter_num = len(os.listdir('resource/picture/scatter'))  # 散点图数量
+        dict_num = len(os.listdir('resource/dict'))  # 字典数量
 
         # 如果都为0，且预测数据也为0则返回真
-        if model_num == 0 and line_num == 0 and scatter_num == 0 and self.exam_is_predict_clear():
+        if model_num == 0 and line_num == 0 and scatter_num == 0 and dict_num == 0 and self.exam_is_predict_clear():
             return True
         return False
 
+    # 检测预测数据是否清空
     def exam_is_predict_clear(self):
         """
         检测预测数据是否清空
         :return:
         """
         predict_picture_num = len(os.listdir('resource/picture/predict'))  # 预测折线图文件数量
-        test_juan_data_num = len(os.listdir('resource/划分数据/卷积后测试数据'))  # 卷积后的测试数据文件数量
+        predict_export_data_num = len(os.listdir('resource/result'))  # 卷积后的测试数据文件数量
         # 如果文件都为空则返回真
-        if predict_picture_num == 0 and test_juan_data_num == 0:
+        if predict_picture_num == 0 and predict_export_data_num == 0:
             return True
         return False
 
@@ -742,9 +819,9 @@ if __name__ == '__main__':
     app = QApplication([])
     app.setWindowIcon(QIcon('resource/picture/燃气.png'))
 
-    login = Login()
-    login.show()
-    # main = Main()
-    # main.show()
+    # login = Login()
+    # login.show()
+    main = Main()
+    main.show()
 
     app.exec_()

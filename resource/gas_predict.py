@@ -1,3 +1,5 @@
+import json
+import pickle
 import shutil
 
 import numpy as np
@@ -25,7 +27,7 @@ def Remove_classification(path, num):
 
 
 def main(ms,pred_size):
-    path = 'resource/划分数据/聚类中心'
+    path = 'resource/临时数据/聚类中心'
     files = os.listdir(path)
 
     for i in range(len(files)):
@@ -42,6 +44,18 @@ def main(ms,pred_size):
         # 设置进度条完成进度
         ms.progress_return.emit(6+i)
 
+# 保存字典
+def sava_dict(dict):
+    file_name = 'resource/dict/dict.pkl'
+    with open(file_name,'wb') as f:
+        pickle.dump(dict,f)
+
+# 加载字典
+def load_dict(dict_path):
+    with open(dict_path,'rb') as f:
+        return pickle.load(f)
+
+
 
 def cluster(ms, train_data_path,pred_size):
     """
@@ -52,6 +66,9 @@ def cluster(ms, train_data_path,pred_size):
     global path_all, dict_
     path_all, dict_ = test_try_2.main(ms, train_data_path)
     print(dict_)
+    sava_dict(dict_)
+    # 发送到主线程显示在框框中
+    ms.text_print.emit('聚类字典位于：resource/dict')
 
     ms.text_print.emit('模型建立中，该过程耗时较长，请耐心等待......')
     # 训练三个模型
@@ -60,7 +77,7 @@ def cluster(ms, train_data_path,pred_size):
     ms.text_print.emit('模型位于：resource/model')
 
 
-def predict(ms, predict_data_path,pred_size):
+def predict(ms, predict_data_path,model_path,dict_path):
     """
     对新井进行预测
     :return:
@@ -70,10 +87,14 @@ def predict(ms, predict_data_path,pred_size):
     # 对新井进行分类 + 预测：
     path = predict_data_path
     files = os.listdir(path)
+    model_pre_days_num = os.listdir(model_path)
+    pred_size = int(model_pre_days_num[0].split('_')[0])
     test_time = 60  # 六十天的数据用于测试
-
+    # 加载字典数据
+    dict = load_dict(dict_path)
     RMSE = 0
     MAPE = 0
+    os.makedirs('resource/临时数据/卷积后测试数据/')
     for i in range(len(files)):
         # 读取数据
         data_i = pd.read_excel(path + '\\' + files[i])
@@ -86,22 +107,24 @@ def predict(ms, predict_data_path,pred_size):
         X[0, 1] = test_try_2.Absolut1(data)  # 波动大小
         # X[0, 0] = -0.00206
         # X[0, 1] = 2.35
-        lei = test_try_2.Classfication_max_likelihood_2(X, dict_, 3)
+        lei = test_try_2.Classfication_max_likelihood_2(X, dict, 3)
         print('应该属于:%d类' % (lei))
-        # break
-        # 导入模型预测
-        model_name = 'resource/model/TCN_model第' + str(lei) + '类'
-        dconv_test_path = 'resource/划分数据/卷积后测试数据/' + files[i]  # 卷积后文件的位置
+
+        model_name = model_path+'/'+str(pred_size)+'_TCN_model第' + str(lei) + '类'
+
+        dconv_test_path = 'resource/临时数据/卷积后测试数据/' + files[i]  # 卷积后文件的位置
         dconv_test = dconv.main(path + '/' + files[i], dconv_test_path)
 
         # 预测+正确率
         tcn_rmse, tcn_mape = prednext_TCN.test(dconv_test, model_name, str(files[i]).split('.')[0], lei, X[0, 0],
                                                X[0, 1], ms, i,pred_size)
-        os.remove(dconv_test)  # 删除卷积后的表
+
         RMSE = RMSE + tcn_rmse
         MAPE = MAPE + tcn_mape
-    path_classification = 'resource/划分数据/训练数据'
     # Remove_classification(path_classification, len(dict_))  #删除每个类别
+    # os.removedirs('resource/临时数据/卷积后测试数据/')  # 删除卷积后的文件夹
+    shutil.rmtree('resource/临时数据/卷积后测试数据/')
+    shutil.rmtree('resource/临时数据/聚类中心/')
     print('RMSE:', RMSE / len(files))
     print('MAPE:', MAPE / len(files))
 
@@ -115,7 +138,7 @@ def predict(ms, predict_data_path,pred_size):
 #     main()
 #
 #     #对新井进行分类 + 预测：
-#     path = '划分数据\\测试数据'
+#     path = '临时数据\\测试数据'
 #     files = os.listdir(path)
 #     test_time = 60  #六十天的数据用于测试
 #
@@ -138,7 +161,7 @@ def predict(ms, predict_data_path,pred_size):
 #         # break
 #         #导入模型预测
 #         model_name = 'TCN_model第' + str(lei) + '类'
-#         dconv_test_path = '划分数据\\卷积后测试数据\\' + files[i]   #卷积后文件的位置
+#         dconv_test_path = '临时数据\\卷积后测试数据\\' + files[i]   #卷积后文件的位置
 #         dconv_test = dconv.main(path + '\\' + files[i], dconv_test_path)
 #
 #         #预测+正确率
@@ -146,7 +169,7 @@ def predict(ms, predict_data_path,pred_size):
 #         os.remove(dconv_test)  #删除卷积后的表
 #         RMSE = RMSE + tcn_rmse
 #         MAPE = MAPE + tcn_mape
-#     path_classification = '划分数据\\训练数据'
+#     path_classification = '临时数据\\训练数据'
 #     # Remove_classification(path_classification, len(dict_))  #删除每个类别
 #     print('RMSE:', RMSE/len(files))
 #     print('MAPE:', MAPE/len(files))
