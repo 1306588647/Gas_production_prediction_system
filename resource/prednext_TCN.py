@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
@@ -193,6 +195,8 @@ def test(Test_file, model_name, file_name, LEI, feature_1, feature_2, ms, i, pre
            '日产气 (m^3)':pre_}
 
     export_data = pd.DataFrame(dic)
+    if not os.path.exists('resource/result'):
+        os.mkdir('resource/result/')
     export_data.to_excel('resource/result/'+file_name+'.xlsx',index=False)
 
     plt.ylim([0, top * 1.3])

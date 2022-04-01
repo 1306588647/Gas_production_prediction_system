@@ -325,10 +325,14 @@ class Main(QMainWindow):
         self.textBrowser.clear()
 
         # 删除生成的数据
-        self.del_file('resource/model')  # 删除生成的模型
+        if os.path.exists('resource/model'):
+            shutil.rmtree('resource/model')  # 删除生成的模型
         self.del_file('resource/picture/line')  # 删除散点图和每一类的折线图
         self.del_file('resource/picture/scatter')  # 删除散点图和每一类的折线图
-        self.del_file('resource/dict')  # 删除聚类字典
+        if os.path.exists('resource/dict'):
+            shutil.rmtree('resource/dict')  # 删除聚类字典
+        if os.path.exists('resource/临时数据'):
+            shutil.rmtree('resource/临时数据')
 
         # 清空左边list中的item
         self.leftlist.clear()
@@ -434,7 +438,8 @@ class Main(QMainWindow):
 
         # 删除生成的预测图片和和卷积数据
         self.del_file('resource/picture/predict')
-        self.del_file('resource/result/')
+        if os.path.exists('resource/result'):
+            shutil.rmtree('resource/result/')
 
         # 清空左边list中的item
         self.listWidget.clear()
@@ -791,10 +796,14 @@ class Main(QMainWindow):
         检测训练数据和预测数据是否清空asdasd
         :return:
         """
-        model_num = len(os.listdir('resource/model'))  # 模型文件数量
+        model_num = 0
+        dict_num = 0
+        if os.path.exists('resource/model'):
+            model_num = len(os.listdir('resource/model'))  # 模型文件数量
         line_num = len(os.listdir('resource/picture/line'))  # 聚类折线图文件数量
         scatter_num = len(os.listdir('resource/picture/scatter'))  # 散点图数量
-        dict_num = len(os.listdir('resource/dict'))  # 字典数量
+        if os.path.exists('resource/model'):
+            dict_num = len(os.listdir('resource/dict'))  # 字典数量
 
         # 如果都为0，且预测数据也为0则返回真
         if model_num == 0 and line_num == 0 and scatter_num == 0 and dict_num == 0 and self.exam_is_predict_clear():
@@ -807,8 +816,10 @@ class Main(QMainWindow):
         检测预测数据是否清空
         :return:
         """
+        predict_export_data_num=0
         predict_picture_num = len(os.listdir('resource/picture/predict'))  # 预测折线图文件数量
-        predict_export_data_num = len(os.listdir('resource/result'))  # 卷积后的测试数据文件数量
+        if os.path.exists('resource/result'):
+            predict_export_data_num = len(os.listdir('resource/result'))  # 卷积后的测试数据文件数量
         # 如果文件都为空则返回真
         if predict_picture_num == 0 and predict_export_data_num == 0:
             return True
