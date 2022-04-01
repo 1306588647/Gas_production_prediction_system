@@ -211,6 +211,9 @@ class Main(QMainWindow):
         # 初始化聚类中心为0
         self.center_num = 0
 
+        # 设置预测最大值最小值
+        self.spinBox.setRange(1, 30)
+
         # 初始化时，模型训练前，聚类分析不可用
         self.tabWidget.setTabEnabled(1, False)
 
@@ -302,10 +305,10 @@ class Main(QMainWindow):
                 self.tabWidget.setTabEnabled(2, False)
 
                 # 设置预测天数
-                self.pred_size = int(self.comboBox.currentText())
+                self.pred_size = int(self.spinBox.value())
 
                 # 选择预测天数不可用
-                self.comboBox.setEnabled(False)
+                self.spinBox.setEnabled(False)
 
                 # 创建子线程，建立模型，参数是ms和训练文件选择路径
                 self.thread = Thread(target=gas_predict.cluster, args=(self.ms, train_data_path, self.pred_size))
@@ -772,7 +775,7 @@ class Main(QMainWindow):
         self.action_export_dict.setEnabled(False)
 
         # 选择预测天数可用
-        self.comboBox.setEnabled(True)
+        self.spinBox.setEnabled(True)
 
     # 当点击清除预测数据按钮，可用和不可用更改
     def alter_available_clear_predict(self):
@@ -816,7 +819,7 @@ class Main(QMainWindow):
         检测预测数据是否清空
         :return:
         """
-        predict_export_data_num=0
+        predict_export_data_num = 0
         predict_picture_num = len(os.listdir('resource/picture/predict'))  # 预测折线图文件数量
         if os.path.exists('resource/result'):
             predict_export_data_num = len(os.listdir('resource/result'))  # 卷积后的测试数据文件数量

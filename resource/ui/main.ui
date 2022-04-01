@@ -131,33 +131,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QComboBox" name="comboBox">
-                     <item>
-                      <property name="text">
-                       <string>2</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>4</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>6</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>12</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>19</string>
-                      </property>
-                     </item>
-                    </widget>
+                    <widget class="QSpinBox" name="spinBox"/>
                    </item>
                    <item>
                     <widget class="QLabel" name="label_2">

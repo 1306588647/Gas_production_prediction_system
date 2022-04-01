@@ -9,22 +9,21 @@ from tensorflow.keras.models import load_model
 import matplotlib.pyplot as plt
 from resource.tcn.tcn import TCN
 
-TIME_STEPS = 95 #用几天来预测
+TIME_STEPS = 30  # 用几天来预测
 
-PRED_SIZE = 19   #预测天数
+PRED_SIZE = 0  # 预测天数
 BATCH_SIZE = 64
 
 INPUT_SIZE = 50
-EPOCH = 5
+EPOCH = 200
 DILA = [1, 2, 4, 8, 16, 32]
-FILTER_NUMS = 16
+FILTER_NUMS = 256
 KERNEL_SIZE = 2
 
 
 def alter_global_data(pred_size):
-    global TIME_STEPS, PRED_SIZE
+    global PRED_SIZE
     PRED_SIZE = pred_size
-    TIME_STEPS = PRED_SIZE * 5
 
 
 class KerasMultiTCN(object):
@@ -49,9 +48,9 @@ class KerasMultiTCN(object):
         self.model.compile(metrics=['mae'], loss='mean_squared_error', optimizer='adam')
         self.model.summary()
 
-    def train(self, x_train, y_train, epochs, filename,pred_size):
+    def train(self, x_train, y_train, epochs, filename, pred_size):
         history = self.model.fit(x_train, y_train, epochs=epochs, batch_size=self.batch_size).history
-        self.model.save("resource/model/"+str(pred_size)+"_TCN_model" + filename)
+        self.model.save("resource/model/" + str(pred_size) + "_TCN_model" + filename)
 
         return history
 
@@ -123,7 +122,7 @@ def train(path, model_name, pred_size):
     X, Y, z, sc, df = set_datas(df, True)
     model = KerasMultiTCN(FILTER_NUMS, KERNEL_SIZE, TIME_STEPS, INPUT_SIZE, PRED_SIZE, BATCH_SIZE, DILA)
     model.model()
-    model.train(X, Y, EPOCH, model_name,pred_size)
+    model.train(X, Y, EPOCH, model_name, pred_size)
 
 
 # 反归一化的时候要用原始test样本数量（因为时间步的存在，所以一定有最开始时间步的样本没有预测结果）（预测结果都是从时间步之后开始）
@@ -132,12 +131,13 @@ def get_versePred(y, z, path):
     X, Y, training_set, sc, df = set_datas(df, False)
     Y_len = Y.shape[0] * Y.shape[1]
     coushu = df.shape[0] - Y_len
+    tail = Y_len + TIME_STEPS - df.shape[0]
     testY_data = z[:, 0]
     coushu_pred = np.concatenate((testY_data[:coushu], y), axis=0)
     coushu_pred_2 = np.expand_dims(coushu_pred, axis=1)
     yy = np.concatenate((coushu_pred_2, z[:, 1:]), axis=1)
     inversePred = sc.inverse_transform(yy)
-    return inversePred, coushu
+    return inversePred, coushu, tail
 
 
 def test(Test_file, model_name, file_name, LEI, feature_1, feature_2, ms, i, pred_size):
@@ -147,11 +147,11 @@ def test(Test_file, model_name, file_name, LEI, feature_1, feature_2, ms, i, pre
     model = load_model(model_name)
     pred = model.predict(X)
     y = pred.flatten('F')
-    inversePred, coushu = get_versePred(y, z, Test_file)
+    inversePred, coushu, tail = get_versePred(y, z, Test_file)
     # 反归一化之后将时间步的预测结果去掉，才是最后的预测，分别与原始未处理的油压、经过归一化处理的油压 进行对比
     # 预测y
     Y_prenext = inversePred[coushu:, 0]
-    PredY = inversePred[coushu:-PRED_SIZE, 0]
+    PredY = inversePred[coushu:-tail, 0]
     # #原始未处理过的y
 
     RealY = df.iloc[TIME_STEPS:, 0].values
@@ -159,12 +159,11 @@ def test(Test_file, model_name, file_name, LEI, feature_1, feature_2, ms, i, pre
     last_rel = RealY[-TIME_STEPS:]
     # last_pre = Y_prenext[-(PRED_SIZE + TIME_STEPS):]
     last_pre = Y_prenext[-(PRED_SIZE + TIME_STEPS):]
-    pre_ =  Y_prenext[-(PRED_SIZE):]
+    pre_ = Y_prenext[-(PRED_SIZE):]
 
     # 计算三者之间的误差
     PR_lossMAPE = MAPE(PredY, RealY)
     PR_lossRMSE = RMSE(PredY, RealY)
-
 
     # ##输出到csv文件
     # output = pd.DataFrame()
@@ -183,21 +182,19 @@ def test(Test_file, model_name, file_name, LEI, feature_1, feature_2, ms, i, pre
     top = max(relmax, premax)
 
     x_rel = np.arange(TIME_STEPS)
-    x_pre = np.arange(TIME_STEPS,TIME_STEPS+PRED_SIZE)
+    x_pre = np.arange(TIME_STEPS, TIME_STEPS + PRED_SIZE)
 
-    plt.plot(x_rel,last_rel, label='原始')
+    plt.plot(x_rel, last_rel, label='原始')
 
-    plt.plot(x_pre,pre_, label='预测')
+    plt.plot(x_pre, pre_, label='预测')
 
-
-
-    dic = {'预测天数':np.arange(1,len(pre_)+1),
-           '日产气 (m^3)':pre_}
+    dic = {'预测天数': np.arange(1, len(pre_) + 1),
+           '日产气 (m^3)': pre_}
 
     export_data = pd.DataFrame(dic)
     if not os.path.exists('resource/result'):
         os.mkdir('resource/result/')
-    export_data.to_excel('resource/result/'+file_name+'.xlsx',index=False)
+    export_data.to_excel('resource/result/' + file_name + '.xlsx', index=False)
 
     plt.ylim([0, top * 1.3])
 
