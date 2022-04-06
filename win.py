@@ -630,11 +630,12 @@ class Main(QMainWindow):
         """
         # 获取保存路径
         filePath = QFileDialog.getExistingDirectory(self, "选择存储路径")
-        # 保存到所选路径
-        shutil.copyfile('resource/picture/scatter/scatter.png', filePath + '/' + 'scatter.png')
-        QMessageBox.information(self,
-                                '导出成功',
-                                "文件位于：" + filePath)
+        if filePath != '':
+            # 保存到所选路径
+            shutil.copyfile('resource/picture/scatter/scatter.png', filePath + '/' + 'scatter.png')
+            QMessageBox.information(self,
+                                    '导出成功',
+                                    "文件位于：" + filePath)
 
     # 保存聚类折线图
     def export_line(self):
@@ -644,13 +645,14 @@ class Main(QMainWindow):
         """
         # 获取保存路径
         filePath = QFileDialog.getExistingDirectory(self, "选择存储路径")
-        # 保存到所选路径
-        files = os.listdir('resource/picture/line')
-        for file in files:
-            shutil.copyfile('resource/picture/line/' + file, filePath + '/' + file)
-        QMessageBox.information(self,
-                                '导出成功',
-                                "文件位于：" + filePath)
+        if filePath != '':
+            # 保存到所选路径
+            files = os.listdir('resource/picture/line')
+            for file in files:
+                shutil.copyfile('resource/picture/line/' + file, filePath + '/' + file)
+            QMessageBox.information(self,
+                                    '导出成功',
+                                    "文件位于：" + filePath)
 
     # 保存预测过后的折线图
     def export_predict_png(self):
@@ -660,13 +662,14 @@ class Main(QMainWindow):
         """
         # 获取保存路径
         filePath = QFileDialog.getExistingDirectory(self, "选择存储路径")
-        # 保存到所选路径
-        files = os.listdir('resource/picture/predict')
-        for file in files:
-            shutil.copyfile('resource/picture/predict/' + file, filePath + '/' + file)
-        QMessageBox.information(self,
-                                '导出成功',
-                                "文件位于：" + filePath)
+        if filePath!='':
+            # 保存到所选路径
+            files = os.listdir('resource/picture/predict')
+            for file in files:
+                shutil.copyfile('resource/picture/predict/' + file, filePath + '/' + file)
+            QMessageBox.information(self,
+                                    '导出成功',
+                                    "文件位于：" + filePath)
 
     # 导出预测数据
     def export_predict_data(self):
@@ -677,12 +680,13 @@ class Main(QMainWindow):
         # 获取保存路径
         filePath = QFileDialog.getExistingDirectory(self, "选择存储路径")
         # 保存到所选路径
-        files = os.listdir('resource/result')
-        for file in files:
-            shutil.copyfile('resource/result/' + file, filePath + '/' + file)
-        QMessageBox.information(self,
-                                '导出成功',
-                                "文件位于：" + filePath)
+        if filePath != '':
+            files = os.listdir('resource/result')
+            for file in files:
+                shutil.copyfile('resource/result/' + file, filePath + '/' + file)
+            QMessageBox.information(self,
+                                    '导出成功',
+                                    "文件位于：" + filePath)
 
     # 导出模型
     def export_model(self):
@@ -692,13 +696,14 @@ class Main(QMainWindow):
         """
         # 获取保存路径
         filePath = QFileDialog.getExistingDirectory(self, "选择存储路径")
-        # 保存到所选路径
-        files = os.listdir('resource/model')
-        for file in files:
-            shutil.copytree('resource/model/' + file, filePath + '/' + file)
-        QMessageBox.information(self,
-                                '导出成功',
-                                "文件位于：" + filePath)
+        if filePath != '':
+            # 保存到所选路径
+            files = os.listdir('resource/model')
+            for file in files:
+                shutil.copytree('resource/model/' + file, filePath + '/' + file)
+            QMessageBox.information(self,
+                                    '导出成功',
+                                    "文件位于：" + filePath)
 
     # 导出聚类字典数据
     def export_dict(self):
@@ -708,13 +713,14 @@ class Main(QMainWindow):
         """
         # 获取保存路径
         filePath = QFileDialog.getExistingDirectory(self, "选择存储路径")
-        # 保存到所选路径
-        files = os.listdir('resource/dict')
-        for file in files:
-            shutil.copyfile('resource/dict/' + file, filePath + '/' + file)
-        QMessageBox.information(self,
-                                '导出成功',
-                                "文件位于：" + filePath)
+        if filePath != '':
+            # 保存到所选路径
+            files = os.listdir('resource/dict')
+            for file in files:
+                shutil.copyfile('resource/dict/' + file, filePath + '/' + file)
+            QMessageBox.information(self,
+                                    '导出成功',
+                                    "文件位于：" + filePath)
 
     # 退出主窗口进入登录窗口
     def app_exit(self):

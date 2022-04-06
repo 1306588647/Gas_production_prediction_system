@@ -173,7 +173,7 @@ def test(Test_file, model_name, file_name, LEI, feature_1, feature_2, ms, i, pre
 
     plt.rcParams['font.sans-serif'] = ['SimHei']  # 显示中文标签
     plt.rcParams['axes.unicode_minus'] = False
-    plt.rcParams['figure.figsize'] = (8, 4)
+    plt.rcParams['figure.figsize'] = (8.5, 4)
     plt.title(file_name + ' ' + '类别:' + str(LEI) + ' ' + 'MAPE:' + str(PR_lossMAPE))  # 加标签
 
     # 获取最大值
