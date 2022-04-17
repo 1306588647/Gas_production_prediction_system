@@ -91,6 +91,7 @@ def predict(ms, predict_data_path, model_path, dict_path):
     test_time = 60  # 六十天的数据用于测试
     # 加载字典数据
     dict = load_dict(dict_path)
+    print(dict)
     RMSE = 0
     MAPE = 0
     if not os.path.exists('resource/临时数据/卷积后测试数据/'):

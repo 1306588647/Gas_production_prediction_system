@@ -109,7 +109,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="text_passward">
+       <widget class="QLineEdit" name="text_password">
         <property name="font">
          <font>
           <family>宋体</family>

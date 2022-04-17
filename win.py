@@ -2,10 +2,12 @@ import os
 import shutil
 from threading import Thread
 
-from PyQt5.QtCore import pyqtSignal, QObject, Qt
+import hashlib
+
+from PyQt5.QtCore import pyqtSignal, QObject, Qt, QRegExp
 from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox, QMainWindow, QFileDialog, QLabel
 from PyQt5.uic import loadUi
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtGui import QIcon, QPixmap, QRegExpValidator
 import pymysql  # 数据库控制
 
 from resource import gas_predict
@@ -62,23 +64,36 @@ class Login(QWidget):
         # 注册按钮关联
         self.btn_register.clicked.connect(self.click_register)
 
+        # 设置输入框只能输入非中文字符
+        self.text_user.setValidator(QRegExpValidator(QRegExp("[^\u4e00-\u9fa5]{16}"), self))
+        self.text_password.setValidator(QRegExpValidator(QRegExp("[^\u4e00-\u9fa5]{16}"), self))
+
     # 登录事件触发
     def click_login(self):
         # 获取账号和密码文本框内容
         username = self.text_user.text().strip()
-        password = self.text_passward.text().strip()
+        password = self.text_password.text().strip()
         # 判断输入情况是否合法
         if username == '' or password == '':  # 账号或密码为空
             QMessageBox.information(self,
                                     "提示",
                                     "账号或密码为空!")
         else:
+            # 创建md5对象
+            hl = hashlib.md5()
+            # Tips
+            # 此处必须声明encode
+            # 若写法为hl.update(str) 报错为： Unicode-objects must be encoded before hashing
+            # 对密码进行md5加密
+            hl.update(password.encode(encoding='utf-8'))
+            # 获取加密密码
+            password = hl.hexdigest()
             # 打开数据库连接
             db = pymysql.connect(host="localhost", user="root", password="root", database="userinfo")
             cursor = db.cursor()
 
             # 查询是否有该用户
-            sql = f"select * from user where username = {username} and password = {password}"
+            sql = f"select * from user where username =\'{username}\' and password = \'{password}\'"
             cursor.execute(sql)
             result = cursor.fetchall()
 
@@ -124,6 +139,11 @@ class Register(QWidget):
         # 注册按钮关联
         self.btn_register.clicked.connect(self.click_register)
 
+        # 设置输入框只能输入非中文字符
+        self.text_user.setValidator(QRegExpValidator(QRegExp("[^\u4e00-\u9fa5]{16}"), self))
+        self.text_password.setValidator(QRegExpValidator(QRegExp("[^\u4e00-\u9fa5]{16}"), self))
+        self.text_password_is.setValidator(QRegExpValidator(QRegExp("[^\u4e00-\u9fa5]{16}"), self))
+
     # 返回按钮触发
     def click_return(self):
         # 全局变量
@@ -139,12 +159,13 @@ class Register(QWidget):
         username = self.text_user.text().strip()
         password = self.text_password.text().strip()
         password_is = self.text_password_is.text().strip()
+        staff_name = self.text_name.text().strip()
 
         # 当账号或密码或确认密码为空，则提示为空
-        if username == '' or password == '' or password_is == '':
+        if username == '' or password == '' or password_is == '' or staff_name == '':
             QMessageBox.information(self,
                                     "提示",
-                                    "账号或密码为空！")
+                                    "账号或密码或姓名为空！")
         # 当密码和确认密码不同，提示
         elif password != password_is:
             QMessageBox.information(self,
@@ -157,10 +178,11 @@ class Register(QWidget):
                                     "账号和密码都不得少于6位！")
         # 输入的数据都合法
         else:
+
             # 打开数据库连接
             db = pymysql.connect(host="localhost", user="root", password="root", database="userinfo")
             cursor = db.cursor()
-            sql = f"select username from user where username = {username}"
+            sql = f"select username from user where username =\'{username}\'"
             cursor.execute(sql)
             # 抓取结果
             result = cursor.fetchall()
@@ -170,19 +192,41 @@ class Register(QWidget):
                 QMessageBox.information(self,
                                         "提示",
                                         "账号已存在，请重新输入！")
-            # 如果没有该账号，则将新的数据插入到数据库
+            # 如果没有该账号，则查询内部人员表，是否内部人员
             else:
-                sql = f"insert into user (username,password) values({username},{password})"
+                sql = f"select stname from staff where stname = \'{staff_name}\'"
                 cursor.execute(sql)
-                # 提交数据库
-                db.commit()
-                cursor.close()
-                db.close()
-                QMessageBox.information(self,
-                                        "提示",
-                                        "注册成功！")
-                # 返回登录界面
-                self.click_return()
+                # 抓取结果
+                result = cursor.fetchall()
+                # 当查询到数据库中存在该账号，提示已存在
+                if len(result) == 0:
+                    QMessageBox.information(self,
+                                            "提示",
+                                            staff_name + "非内部人员，禁止注册！")
+
+                else:
+
+                    # 创建md5对象
+                    hl = hashlib.md5()
+                    # Tips
+                    # 此处必须声明encode
+                    # 若写法为hl.update(str) 报错为： Unicode-objects must be encoded before hashing
+                    # 对密码进行md5加密
+                    hl.update(password.encode(encoding='utf-8'))
+                    # 获取加密密码
+                    password = hl.hexdigest()
+
+                    sql = f"insert into user (username,password) values(\'{username}\',\'{password}\')"
+                    cursor.execute(sql)
+                    # 提交数据库
+                    db.commit()
+                    cursor.close()
+                    db.close()
+                    QMessageBox.information(self,
+                                            "提示",
+                                            "注册成功！")
+                    # 返回登录界面
+                    self.click_return()
 
 
 # 主界面
@@ -662,7 +706,7 @@ class Main(QMainWindow):
         """
         # 获取保存路径
         filePath = QFileDialog.getExistingDirectory(self, "选择存储路径")
-        if filePath!='':
+        if filePath != '':
             # 保存到所选路径
             files = os.listdir('resource/picture/predict')
             for file in files:
@@ -839,9 +883,9 @@ if __name__ == '__main__':
     app = QApplication([])
     app.setWindowIcon(QIcon('resource/picture/燃气.png'))
 
-    # login = Login()
-    # login.show()
-    main = Main()
-    main.show()
+    login = Login()
+    login.show()
+    # main = Main()
+    # main.show()
 
     app.exec_()
