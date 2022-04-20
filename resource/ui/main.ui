@@ -38,11 +38,11 @@
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="import_data">
        <attribute name="title">
-        <string>训练模型</string>
+        <string>模型训练</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_7">
         <item>
@@ -196,7 +196,7 @@
       </widget>
       <widget class="QWidget" name="model_prediction">
        <attribute name="title">
-        <string>模型预测</string>
+        <string>产气量预测</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_10">
         <item>
