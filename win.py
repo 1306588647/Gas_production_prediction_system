@@ -1,6 +1,8 @@
 import os
 import shutil
 
+
+
 from threading import Thread
 
 import hashlib
@@ -33,364 +35,17 @@ class MySignals(QObject):
     predict_return = pyqtSignal(str)
 
 
-# 登录界面
-class Login(QWidget):
-    def __init__(self):
-        super(Login, self).__init__()
-
-        # 加载ui界面
-        loadUi('resource/ui/login.ui', self)
-        # self.setupUi(self) # 设置写好的ui转py
-
-        # 设置背景图片
-        self.Background_png = QPixmap('resource/picture/background.png')
-        self.Background.setPixmap(self.Background_png)
-
-        # 图片自适应
-        self.Background.setScaledContents(True)
-
-        # 设置图标
-        self.gas_ico_png = QPixmap('resource/picture/燃气.png')
-        self.gas_ico.setPixmap(self.gas_ico_png)
-        self.gas_ico.setScaledContents(True)
-
-        # 登录按钮关联
-        self.btn_login.clicked.connect(self.click_login)
-        # 注册按钮关联
-        self.btn_register.clicked.connect(self.click_register)
-
-        # 设置输入框只能输入非中文字符
-        self.text_user.setValidator(QRegExpValidator(QRegExp("[^\u4e00-\u9fa5]{16}"), self))
-        self.text_password.setValidator(QRegExpValidator(QRegExp("[^\u4e00-\u9fa5]{16}"), self))
-
-    # 登录事件触发
-    def click_login(self):
-        # 获取账号和密码文本框内容
-        username = self.text_user.text().strip()
-        password = self.text_password.text().strip()
-        # 判断输入情况是否合法
-        if username == '' or password == '':  # 账号或密码为空
-            QMessageBox.information(self,
-                                    "提示",
-                                    "账号或密码为空!")
-        else:
-            # 如果是管理员账户则登陆管理员账户
-            if username == 'root' and password == 'root':
-                staff.show()
-                login.hide()
-            else:
-                # 创建md5对象
-                hl = hashlib.md5()
-                # Tips
-                # 此处必须声明encode
-                # 若写法为hl.update(str) 报错为： Unicode-objects must be encoded before hashing
-                # 对密码进行md5加密
-                hl.update(password.encode(encoding='utf-8'))
-                # 获取加密密码
-                password = hl.hexdigest()
-                # 打开数据库连接
-                db = pymysql.connect(host="localhost", user="root", password="root", database="userinfo")
-                cursor = db.cursor()
-
-                # 查询是否有该用户
-                sql = f"select * from user where username =\'{username}\'"
-                cursor.execute(sql)
-                result = cursor.fetchall()
-
-                # 判断数据库中是否存在当前用户
-                if len(result) == 0:
-                    QMessageBox.information(self,
-                                            "提示",
-                                            "登录失败，系统无该用户，请先注册！")
-                else:
-                    sql = f"select * from user where username =\'{username}\' and password = \'{password}\'"
-                    cursor.execute(sql)
-                    result = cursor.fetchall()
-                    if len(result) == 0:
-                        QMessageBox.information(self,
-                                                "提示",
-                                                '密码错误，请重新输入!')
-                    else:
-                        QMessageBox.information(self,
-                                                "提示",
-                                                '登录成功!')
-                        cursor.close()
-                        db.close()
-
-                        # 登录成功后显示主界面
-                        main.show()
-                        self.close()
-
-    # 注册事件触发，进入注册界面
-    def click_register(self):
-        # 展示注册窗口
-        register.show()
-        # 隐藏登录窗口
-        self.hide()
-
-# 注册界面
-class Register(QWidget):
-    def __init__(self):
-        super(Register, self).__init__()
-        # 加载ui界面
-        loadUi('resource/ui/register.ui', self)
-
-        # 返回按钮关联
-        self.btn_return.clicked.connect(self.click_return)
-
-        # 注册按钮关联
-        self.btn_register.clicked.connect(self.click_register)
-
-        # 设置输入框只能输入非中文字符
-        self.text_user.setValidator(QRegExpValidator(QRegExp("[^\u4e00-\u9fa5]{16}"), self))
-        self.text_password.setValidator(QRegExpValidator(QRegExp("[^\u4e00-\u9fa5]{16}"), self))
-        self.text_password_is.setValidator(QRegExpValidator(QRegExp("[^\u4e00-\u9fa5]{16}"), self))
-        self.text_phone.setValidator(QRegExpValidator(QRegExp("^[0-9]+$"), self))
-
-    # 返回按钮触发
-    def click_return(self):
-        # 展示登录窗口
-        login.show()
-        # 隐藏注册窗口
-        self.close()
-
-    # 注册按钮触发
-    def click_register(self):
-        # 获取输入框信息
-        username = self.text_user.text().strip()
-        password = self.text_password.text().strip()
-        password_is = self.text_password_is.text().strip()
-        staff_name = self.text_name.text().strip()
-        phone = self.text_phone.text().strip()
-
-        # 当账号或密码或确认密码为空，则提示为空
-        if username == '' or password == '' or password_is == '' or staff_name == '' and phone == '':
-            QMessageBox.information(self,
-                                    "提示",
-                                    "输入框不得为空！")
-        # 当密码和确认密码不同，提示
-        elif password != password_is:
-            QMessageBox.information(self,
-                                    "提示",
-                                    "密码与确认密码不同！")
-        # 用户名和密码不得少于6位
-        elif len(username) < 6 or len(password) < 6:
-            QMessageBox.information(self,
-                                    "提示",
-                                    "账号和密码都不得少于6位！")
-        # 输入的数据都合法
-        else:
-
-            # 打开数据库连接
-            db = pymysql.connect(host="localhost", user="root", password="root", database="userinfo")
-            cursor = db.cursor()
-            sql = f"select username from user where username =\'{username}\'"
-            cursor.execute(sql)
-            # 抓取结果
-            result = cursor.fetchall()
-
-            # 当查询到数据库中存在该账号，提示已存在
-            if len(result) != 0:
-                QMessageBox.information(self,
-                                        "提示",
-                                        "账号已存在，请重新输入！")
-            # 如果没有该账号，则查询内部人员表，是否内部人员
-            else:
-                sql = f"select stname,phone from staff where stname = \'{staff_name}\' and phone = \'{phone}\'"
-                cursor.execute(sql)
-                # 抓取结果
-                result = cursor.fetchall()
-                # 当查询到数据库中存在该账号，提示已存在
-                if len(result) == 0:
-                    QMessageBox.information(self,
-                                            "提示",
-                                            staff_name + "非内部人员，禁止注册！")
-
-                else:
-
-                    # 创建md5对象
-                    hl = hashlib.md5()
-                    # Tips
-                    # 此处必须声明encode
-                    # 若写法为hl.update(str) 报错为： Unicode-objects must be encoded before hashing
-                    # 对密码进行md5加密
-                    hl.update(password.encode(encoding='utf-8'))
-                    # 获取加密密码
-                    password = hl.hexdigest()
-
-                    sql = f"insert into user (username,password,phone) values(\'{username}\',\'{password}\',\'{phone}\')"
-                    cursor.execute(sql)
-                    # 提交数据库
-                    db.commit()
-                    cursor.close()
-                    db.close()
-                    QMessageBox.information(self,
-                                            "提示",
-                                            "注册成功！")
-                    # 返回登录界面
-                    self.click_return()
-
-# 管理员界面
-class Staff(QWidget):
-    def __init__(self):
-        super(Staff, self).__init__()
-        # 加载ui界面
-        loadUi('resource/ui/admin.ui', self)
-
-        # 设置变量是否加载数据完成
-        self.is_read = False
-        self.is_add = False
-        self.read_data()
-
-        # 行名称不显示
-        self.tableWidget.verticalHeader().setVisible(False)
-
-        # 表格控件宽度 随着父窗口的缩放自动缩放
-        self.tableWidget.horizontalHeader().setStretchLastSection(True)
-
-        # 允许右键产生子菜单
-        self.tableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
-        # 右键菜单
-        self.tableWidget.customContextMenuRequested.connect(self.tableWidget_menu)
-
-        self.tableWidget.cellChanged.connect(self.item_changed)
-
-    # 显示右击菜单
-    def tableWidget_menu(self, pos):
-        menu = QMenu()  # 实例化菜单
-        item1 = menu.addAction(u"添加")
-        item2 = menu.addAction(u"删除")
-
-        action = menu.exec_(self.tableWidget.mapToGlobal(pos))
-
-        if action == item1:
-            self.add_data()
-
-        elif action == item2:
-            self.remove_data()
-
-    # 从数据库读取数据
-    def read_data(self):
-        self.is_read = False
-        self.tableWidget.clearContents()
-        self.tableWidget.setRowCount(0)
-        # 数据库连接对象
-        db = pymysql.connect(host="localhost", user="root", password="root", database="userinfo")
-        # 游标对象
-        cursor = db.cursor()
-        # 查询语句
-        sql = "SELECT * FROM staff"
-        cursor.execute(sql)
-        result = cursor.fetchall()
-        # 设置表格有多少行
-        self.tableWidget.setRowCount(len(result))
-        # 行初始化0，列初始化0
-        row = 0
-        # 依次遍历元组，并显示到界面上
-        for items in result:
-            colum = 0
-            for item in items:
-                # 获取插入内容
-                context = QTableWidgetItem(str(item))
-                # 如果是id数据，则不可修改
-                if colum == 0:
-                    # 插入内容不可修改
-                    context.setFlags(Qt.ItemIsEnabled)
-                self.tableWidget.setItem(row, colum, context)
-                colum = colum + 1
-            row = row + 1
-        cursor.close()
-        db.close()
-        # 数据读取完毕
-        self.is_read = True
-
-    # 添加数据
-    def add_data(self):
-        stname = ""
-        phone = ""
-        # 数据库连接对象
-        db = pymysql.connect(host="localhost", user="root", password="root", database="userinfo")
-        # 游标对象
-        cursor = db.cursor()
-        # 查询语句
-        sql = f"insert into staff (stname,phone) values(\'{stname}\',\'{phone}\')"
-        cursor.execute(sql)
-        db.commit()
-        sql = f"select id from staff where stname = \'{stname}\' and phone = \'{phone}\'"
-        cursor.execute(sql)
-        db.commit()
-        cursor.close()
-        db.close()
-
-        self.read_data()
-
-    # 删除数据
-    def remove_data(self):
-        '''
-        删除某一行的数据信息
-        :return:
-        '''
-        # 获取被选中的数据item
-        row_select = self.tableWidget.selectedItems()
-        # 如果选中数据
-        if len(row_select) != 0:
-            # 获取行号
-            row = row_select[0].row()
-            # 获取删除的id号
-            id = self.tableWidget.item(row, 0).text()
-            self.tableWidget.removeRow(row)
-            # 更新数据库
-            # 数据库连接对象
-            db = pymysql.connect(host="localhost", user="root", password="root",
-                                 database="userinfo")
-            # 游标对象
-            cursor = db.cursor()
-            # 查询语句
-            sql = f"delete from staff where id = {id}"
-            cursor.execute(sql)
-            result = cursor.fetchall()
-            cursor.close()
-            db.commit()
-            db.close()
-            QMessageBox.information(self, "提示", "删除成功！")
-        else:
-            QMessageBox.information(self, "提示", "请先选择要删除数据的姓名！")
-
-    # 修改数据
-    def item_changed(self, row, column):
-        if self.is_read == True:
-            id = int(self.tableWidget.item(row, 0).text())
-            stname = self.tableWidget.item(row, 1).text()
-            phone = self.tableWidget.item(row, 2).text()
-
-            # 数据库连接对象
-            db = pymysql.connect(host="localhost", user="root", password="root",
-                                 database="userinfo")
-            # 游标对象
-            cursor = db.cursor()
-            # 查询语句
-            sql = f"update staff set stname = \'{stname}\',phone = \'{phone}\' where id = {id}"
-            cursor.execute(sql)
-            cursor.close()
-            db.commit()
-            db.close()
-
-
-    def closeEvent(self, event):
-        """Shuts down application on close."""
-        login.show()
-
-
-
 
 # 主界面
 class Main(QMainWindow):
 
-    def __init__(self):
+    def __init__(self,login):
         super(Main, self).__init__()
         # 加载ui界面
 
         loadUi('resource/ui/main.ui', self)
+
+        self.login = login
 
         # 建立线程变量
         self.thread = None
@@ -928,8 +583,9 @@ class Main(QMainWindow):
         退出主窗口进入登录窗口
         :return:
         """
+        self.login.show()
         self.close()
-        login.show()
+
 
     # 点击菜单版本号显示版本号
     def app_version(self):
@@ -1035,13 +691,10 @@ class Main(QMainWindow):
         return False
 
 
-if __name__ == '__main__':
-    app = QApplication([])
-    app.setWindowIcon(QIcon('resource/picture/燃气.png'))
-    login = Login()
-    # login.show()
-    register = Register()
-    main = Main()
-    main.show()
-    staff = Staff()
-    app.exec_()
+# if __name__ == '__main__':
+#     app = QApplication([])
+#     app.setWindowIcon(QIcon('resource/picture/燃气.png'))
+#     login = Main.login
+#     main = Main(login)
+#     main.show()
+#     app.exec_()
