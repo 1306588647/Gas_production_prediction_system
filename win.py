@@ -77,7 +77,7 @@ class Login(QWidget):
             # 如果是管理员账户则登陆管理员账户
             if username == 'root' and password == 'root':
                 staff.show()
-                login.close()
+                login.hide()
             else:
                 # 创建md5对象
                 hl = hashlib.md5()
@@ -376,6 +376,13 @@ class Staff(QWidget):
             db.close()
 
 
+    def closeEvent(self, event):
+        """Shuts down application on close."""
+        login.show()
+
+
+
+
 # 主界面
 class Main(QMainWindow):
 
@@ -476,6 +483,7 @@ class Main(QMainWindow):
     def click_start_train_data(self):
         # 获取训练数据文件夹路径
         train_data_path = self.text_train_path.text()
+        print(123123)
         if train_data_path == '':  # 如果目录为空，则提示
             QMessageBox.information(self, "提示", "请先选择训练数据路径！")
         else:
@@ -739,7 +747,7 @@ class Main(QMainWindow):
         name = text.split('/')[1]  # 获取文件名
 
         # 左侧在num位置添加name的item
-        self.listWidget.insertItem(int(num), name)
+        self.listWidget.insertItem(int(num), name.replace('磨溪','mx'))
 
         picture_predict_png = QPixmap('resource/picture/predict/' + name + '.png')
         picture_predict = QLabel()
@@ -1031,8 +1039,9 @@ if __name__ == '__main__':
     app = QApplication([])
     app.setWindowIcon(QIcon('resource/picture/燃气.png'))
     login = Login()
-    login.show()
+    # login.show()
     register = Register()
     main = Main()
+    main.show()
     staff = Staff()
     app.exec_()

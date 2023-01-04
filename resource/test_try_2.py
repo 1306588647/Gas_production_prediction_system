@@ -312,7 +312,9 @@ def draw(labels, Data, files, path, ms):
     ms.text_print.emit('聚类散点图已生成！')
     ms.text_print.emit('散点图位于：resource/picture/scatter')
 
+
     for i in range(type_num):
+        list = []
         for j in range(len(list_files[i])):
             df = pd.read_excel(path + '\\' + list_files[i][j])
 
@@ -321,11 +323,12 @@ def draw(labels, Data, files, path, ms):
             data = data[0:228]  # 取228个数据
             y = data
             x = np.arange(0, 228)
-            plt.plot(x, y, label=list_files[i][j].split('.')[0])
+            plt.plot(x, y, label=list_files[i][j].split('.')[0].replace('磨溪','mx'))
+            list.append(list_files[i][j])
         # 将标签放在右下
         plt.legend(bbox_to_anchor=(1.01, 0), loc=3, borderaxespad=0, fontsize=8)
-        plt.xlabel("天数")
-        plt.ylabel("产气量")
+        plt.xlabel("天数/d")
+        plt.ylabel("产气量/m^3/d")
         # 调整标签显示不全
         # plt.subplots_adjust(right=0.75)
         plt.savefig(f'resource/picture/line/type{i + 1}.png', bbox_inches='tight')
@@ -381,8 +384,7 @@ def fun1(path, ms):
     # 画图
     draw(labels, Data, files, path, ms)
 
-    print(cluster_centers, labels)
-    print(len(cluster_centers))
+
     for z in range(len(cluster_centers)):
         print('第%d类聚类中心井为：%s:', z, files[af.cluster_centers_indices_[z]])
 

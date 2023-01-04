@@ -64,6 +64,18 @@
        </font>
       </property>
      </column>
+     <column>
+      <property name="text">
+       <string>注册权限</string>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>11</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+     </column>
     </widget>
    </item>
    <item>
